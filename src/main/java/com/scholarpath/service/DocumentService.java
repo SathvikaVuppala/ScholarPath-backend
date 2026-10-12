@@ -20,9 +20,12 @@ public class DocumentService {
     }
 
     @Transactional
-    public StudentDocument updateDocument(Long docId, Boolean completed, String notes) {
+    public StudentDocument updateDocument(Long docId, Long studentId, Boolean completed, String notes) {
         StudentDocument doc = documentRepository.findById(docId)
                 .orElseThrow(() -> new RuntimeException("Document not found with id: " + docId));
+        if (!doc.getStudentId().equals(studentId)) {
+            throw new RuntimeException("Document not found with id: " + docId);
+        }
         doc.setCompleted(completed);
         if (notes != null)
             doc.setNotes(notes);

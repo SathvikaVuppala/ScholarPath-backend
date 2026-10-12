@@ -37,7 +37,7 @@ public class StudentService {
     }
 
     public Optional<Student> getStudentByEmail(String email) {
-        return studentRepository.findByEmail(email);
+        return studentRepository.findByEmailIgnoreCase(email);
     }
 
     public List<Student> getAllStudents() {
@@ -47,25 +47,35 @@ public class StudentService {
     @Transactional
     public Student createStudent(Student student) {
         Student saved = studentRepository.save(student);
-        // Seed default document checklist for new student
-        boolean hasDocuments = !documentRepository.findByStudentId(saved.getId()).isEmpty();
-        if (!hasDocuments) {
-            for (String docName : DEFAULT_DOCUMENTS) {
-                StudentDocument doc = StudentDocument.builder()
-                        .studentId(saved.getId())
-                        .documentName(docName)
-                        .completed(false)
-                        .build();
-                documentRepository.save(doc);
-            }
-        }
+        ensureDocumentChecklist(saved);
         return saved;
+    }
+
+    @Transactional
+    public void ensureDocumentChecklist(Student student) {
+        // Seed default document checklist for new student
+        if (!documentRepository.findByStudentId(student.getId()).isEmpty()) {
+            return;
+        }
+        for (String docName : DEFAULT_DOCUMENTS) {
+            StudentDocument doc = StudentDocument.builder()
+                    .studentId(student.getId())
+                    .documentName(docName)
+                    .completed(false)
+                    .build();
+            documentRepository.save(doc);
+        }
     }
 
     @Transactional
     public Student updateStudent(Long id, Student updated) {
         Student existing = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
+        studentRepository.findByEmailIgnoreCase(updated.getEmail())
+                .filter(other -> !other.getId().equals(id))
+                .ifPresent(other -> {
+                    throw new IllegalArgumentException("A student with this email already exists.");
+                });
         existing.setFullName(updated.getFullName());
         existing.setEmail(updated.getEmail());
         existing.setCourse(updated.getCourse());
@@ -75,5 +85,10 @@ public class StudentService {
         existing.setState(updated.getState());
         existing.setCategory(updated.getCategory());
         return studentRepository.save(existing);
+    }
+
+    @Transactional
+    public Student registerStudent(Student student) {
+        return createStudent(student);
     }
 }

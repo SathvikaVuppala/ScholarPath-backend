@@ -43,15 +43,21 @@ public class ApplicationService {
     }
 
     @Transactional
-    public ScholarshipApplication updateStatus(Long appId, String status) {
+    public ScholarshipApplication updateStatus(Long appId, Long studentId, String status) {
         ScholarshipApplication app = applicationRepository.findById(appId)
                 .orElseThrow(() -> new RuntimeException("Application not found with id: " + appId));
+        if (!app.getStudentId().equals(studentId)) {
+            throw new RuntimeException("Application not found with id: " + appId);
+        }
         app.setStatus(ApplicationStatus.valueOf(status));
         return applicationRepository.save(app);
     }
 
     @Transactional
-    public void deleteApplication(Long appId) {
-        applicationRepository.deleteById(appId);
+    public void deleteApplication(Long appId, Long studentId) {
+        ScholarshipApplication app = applicationRepository.findById(appId)
+                .filter(application -> application.getStudentId().equals(studentId))
+                .orElseThrow(() -> new RuntimeException("Application not found with id: " + appId));
+        applicationRepository.delete(app);
     }
 }

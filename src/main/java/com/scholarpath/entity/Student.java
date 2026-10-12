@@ -2,6 +2,7 @@ package com.scholarpath.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 @Entity
@@ -24,6 +25,10 @@ public class Student {
     @Email(message = "Invalid email format")
     @Column(nullable = false, unique = true, length = 150)
     private String email;
+
+    @JsonIgnore
+    @Column(length = 100)
+    private String passwordHash;
 
     @NotBlank(message = "Course is required")
     @Column(nullable = false, length = 100)

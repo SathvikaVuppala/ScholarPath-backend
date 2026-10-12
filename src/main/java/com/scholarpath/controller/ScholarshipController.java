@@ -2,8 +2,10 @@ package com.scholarpath.controller;
 
 import com.scholarpath.entity.Scholarship;
 import com.scholarpath.service.ScholarshipService;
+import com.scholarpath.security.StudentPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,7 +37,11 @@ public class ScholarshipController {
     @GetMapping("/{scholarshipId}/eligibility")
     public ResponseEntity<Map<String, Object>> checkEligibility(
             @PathVariable Long scholarshipId,
-            @RequestParam Long studentId) {
+            @RequestParam Long studentId,
+            @AuthenticationPrincipal StudentPrincipal principal) {
+        if (!studentId.equals(principal.getStudentId())) {
+            return ResponseEntity.notFound().build();
+        }
         Map<String, Object> result = scholarshipService.checkEligibility(scholarshipId, studentId);
         return ResponseEntity.ok(result);
     }
@@ -45,7 +51,12 @@ public class ScholarshipController {
      * GET /api/scholarships/eligibility-all?studentId=1
      */
     @GetMapping("/eligibility-all")
-    public ResponseEntity<?> checkAllEligibility(@RequestParam Long studentId) {
+    public ResponseEntity<?> checkAllEligibility(
+            @RequestParam Long studentId,
+            @AuthenticationPrincipal StudentPrincipal principal) {
+        if (!studentId.equals(principal.getStudentId())) {
+            return ResponseEntity.notFound().build();
+        }
         List<Scholarship> all = scholarshipService.getAllScholarships();
         List<Map<String, Object>> results = all.stream().map(s -> {
             Map<String, Object> elig = scholarshipService.checkEligibility(s.getId(), studentId);
