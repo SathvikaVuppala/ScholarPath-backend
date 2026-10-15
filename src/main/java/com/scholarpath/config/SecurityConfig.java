@@ -67,9 +67,18 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .authenticationProvider(authenticationProvider(passwordEncoder()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/csrf", "/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers("/api/auth/**").authenticated()
-                        .anyRequest().authenticated())
+        .requestMatchers(
+                "/api/auth/csrf",
+                "/api/auth/register",
+                "/api/auth/login"
+        ).permitAll()
+        .requestMatchers(
+                org.springframework.http.HttpMethod.GET,
+                "/api/scholarships",
+                "/api/scholarships/*"
+        ).permitAll()
+        .requestMatchers("/api/auth/**").authenticated()
+        .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
