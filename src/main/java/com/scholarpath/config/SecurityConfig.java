@@ -63,8 +63,8 @@ public class SecurityConfig {
         http
                 .cors(cors -> {})
                 .csrf(csrf -> csrf
-               .csrfTokenRepository(csrfTokenRepository)
-               .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                   .csrfTokenRepository(csrfTokenRepository)
+                  .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .authenticationProvider(authenticationProvider(passwordEncoder()))
                 .authorizeHttpRequests(auth -> auth
         .requestMatchers(
